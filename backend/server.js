@@ -11,6 +11,50 @@ const jwt = require("jsonwebtoken");
 const app = express();
 app.use(cors());
 app.use(express.json());
+let dbConnectionPromise;
+
+async function connectDB() {
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
+  if (!dbConnectionPromise) {
+    dbConnectionPromise = mongoose
+      .connect(process.env.MONGO_URI)
+      .then(async () => {
+        const email = String(process.env.ADMIN_EMAIL || "")
+          .toLowerCase()
+          .trim();
+
+        const password = String(process.env.ADMIN_PASSWORD || "");
+
+        if (email && password && !(await User.exists({ email }))) {
+          await User.create({
+            name: "System Admin",
+            email,
+            password: await bcrypt.hash(password, 10),
+            role: "admin",
+          });
+        }
+      })
+      .catch((error) => {
+        dbConnectionPromise = null;
+        throw error;
+      });
+  }
+
+  await dbConnectionPromise;
+}
+
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("Database connection failed:", error.message);
+    res.status(500).json({ message: "Database connection failed." });
+  }
+});
 
 const UserSchema = new mongoose.Schema(
   {
@@ -578,28 +622,12 @@ app.post("/api/ai/chat", auth, async (req, res) => {
   });
 });
 
-async function start() {
-  await mongoose.connect(process.env.MONGO_URI);
-  const email = String(process.env.ADMIN_EMAIL || "")
-    .toLowerCase()
-    .trim();
-  const password = String(process.env.ADMIN_PASSWORD || "");
-  if (email && password && !(await User.exists({ email }))) {
-    await User.create({
-      name: "System Admin",
-      email,
-      password: await bcrypt.hash(password, 10),
-      role: "admin",
-    });
-    console.log("Initial Admin created:", email);
-  }
+if (require.main === module) {
   const PORT = process.env.PORT || 5000;
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`HCM Lite API running on port: ${PORT}`);
   });
 }
-start().catch((err) => {
-  console.error("Startup failed:", err.message);
-  process.exit(1);
-});
+
+module.exports = app;
