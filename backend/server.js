@@ -288,7 +288,6 @@ app.post(
   },
 );
 
-
 app.get(
   "/api/leaves",
   auth,
@@ -296,9 +295,7 @@ app.get(
   async (req, res) => {
     try {
       const filter =
-        req.user.role === "employee"
-          ? { employee: req.user.id }
-          : {};
+        req.user.role === "employee" ? { employee: req.user.id } : {};
 
       const leaves = await Leave.find(filter)
         .populate("employee", "name email department")
@@ -310,7 +307,7 @@ app.get(
         message: "Could not fetch leave requests.",
       });
     }
-  }
+  },
 );
 
 app.post("/api/leaves", auth, roles("employee"), async (req, res) => {
@@ -376,20 +373,20 @@ app.post("/api/payroll", auth, roles("admin", "hr"), async (req, res) => {
     const { employeeId, month, allowance = 0, deduction = 0 } = req.body;
 
     if (
-  !employeeId ||
-  typeof month !== "string" ||
-  !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)
-) {
+      !employeeId ||
+      typeof month !== "string" ||
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)
+    ) {
       return res.status(400).json({
         message: "Employee and month are required.",
       });
-  }
+    }
 
     if (!mongoose.Types.ObjectId.isValid(employeeId)) {
-  return res.status(400).json({
-    message: "Invalid employee ID.",
-  });
-}
+      return res.status(400).json({
+        message: "Invalid employee ID.",
+      });
+    }
 
     const employee = await User.findOne({
       _id: employeeId,
@@ -408,19 +405,19 @@ app.post("/api/payroll", auth, roles("admin", "hr"), async (req, res) => {
     const netSalary = basicSalary + Number(allowance) - Number(deduction);
 
     if (
-  !Number.isFinite(Number(basicSalary)) ||
-  Number(basicSalary) < 0 ||
-  !Number.isFinite(Number(allowance)) ||
-  !Number.isFinite(Number(deduction)) ||
-  Number(allowance) < 0 ||
-  Number(deduction) < 0 ||
-  !Number.isFinite(netSalary) ||
-  netSalary < 0
-) {
-  return res.status(400).json({
-    message: "Invalid salary values.",
-  });
-}
+      !Number.isFinite(Number(basicSalary)) ||
+      Number(basicSalary) < 0 ||
+      !Number.isFinite(Number(allowance)) ||
+      !Number.isFinite(Number(deduction)) ||
+      Number(allowance) < 0 ||
+      Number(deduction) < 0 ||
+      !Number.isFinite(netSalary) ||
+      netSalary < 0
+    ) {
+      return res.status(400).json({
+        message: "Invalid salary values.",
+      });
+    }
 
     const payroll = await Payroll.create({
       employee: employee._id,
@@ -598,9 +595,9 @@ async function start() {
   }
   const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`HCM Lite API running on port: ${PORT}`);
-});
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`HCM Lite API running on port: ${PORT}`);
+  });
 }
 start().catch((err) => {
   console.error("Startup failed:", err.message);
