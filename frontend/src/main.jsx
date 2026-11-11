@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+
 import { createRoot } from "react-dom/client";
 import {
   LayoutDashboard,
@@ -12,6 +13,8 @@ import {
   X,
   Clock3,
   Building2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import "./style.css";
 import { jsPDF } from "jspdf";
@@ -36,8 +39,10 @@ function App() {
     allowance: 0,
     deduction: 0,
   });
-  const [email, setEmail] = useState("admin@example.com"),
-    [password, setPassword] = useState("ChangeMe123!");
+
+  const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+const [showPassword, setShowPassword] = useState(false);
   const [page, setPage] = useState("Dashboard"),
     [data, setData] = useState({}),
     [error, setError] = useState(""),
@@ -245,27 +250,61 @@ function App() {
           </p>
           {error && <div className="error">{error}</div>}
           <form onSubmit={login}>
-            <label>Email address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <button className="primary full" disabled={busy}>
-              {busy ? "Signing in..." : "Sign in"}
-            </button>
-          </form>
-          <p className="hint">
-            First run uses ADMIN_EMAIL and ADMIN_PASSWORD from backend/.env.
-          </p>
+  <label>Email address</label>
+  <input
+    type="email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    placeholder="Enter your email"
+    required
+  />
+
+  <label>Password</label>
+
+  <div style={{ position: "relative" }}>
+    <input
+      type={showPassword ? "text" : "password"}
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      placeholder="Enter your password"
+      required
+      style={{ paddingRight: "45px" }}
+    />
+
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      title={showPassword ? "Hide password" : "Show password"}
+      style={{
+        position: "absolute",
+        right: "12px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        color: "#64748b",
+        padding: "4px",
+      }}
+    >
+      {showPassword ? (
+        <EyeOff size={19} />
+      ) : (
+        <Eye size={19} />
+      )}
+    </button>
+  </div>
+
+  <button className="primary full" disabled={busy}>
+    {busy ? "Signing in..." : "Sign in"}
+  </button>
+</form>
+
+<p className="hint">
+  First run uses ADMIN_EMAIL and ADMIN_PASSWORD from backend/.env.
+</p>
         </div>
       </div>
     );
