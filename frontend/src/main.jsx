@@ -65,18 +65,26 @@ function App() {
     [chat, setChat] = useState("Who is on leave today?"),
     [answer, setAnswer] = useState("");
   async function api(path, options = {}) {
-    const r = await fetch(API + path, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: "Bearer " + token } : {}),
-        ...(options.headers || {}),
-      },
-    });
-    const body = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(body.message || "Request failed");
-    return body;
+  const r = await fetch(API + path, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: "Bearer " + token } : {}),
+      ...(options.headers || {}),
+    },
+  });
+
+  const body = await r.json().catch(() => ({}));
+
+  if (r.status === 401 && path !== "/auth/login") {
+    logout();
+    throw new Error("Session expired. Please sign in again.");
   }
+
+  if (!r.ok) throw new Error(body.message || "Request failed");
+
+  return body;
+}
   async function login(e) {
     e.preventDefault();
     setBusy(true);
@@ -343,12 +351,32 @@ function App() {
       </aside>
       <main className="main">
         <header className="topbar">
-          <div>
-            <span className="muted">Workspace / </span>
-            <b>{page}</b>
-          </div>
-          <span className="role-pill">{user.role}</span>
-        </header>
+  <div>
+    <span className="muted">Workspace / </span>
+    <b>{page}</b>
+  </div>
+
+  <div style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "10px"
+  }}>
+    <span className="role-pill">{user.role}</span>
+
+    <button
+      className="secondary"
+      onClick={logout}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px"
+      }}
+    >
+      <LogOut size={16} />
+      Logout
+    </button>
+  </div>
+</header>
         <section className="content">
           <div className="page-heading">
             <div>
